@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Match Archives - GameVerse{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="text-white mb-1">⚔️ Match Records & Archives</h1>
+            <p class="text-secondary small mb-0">Search historical encounters, round fixtures, and bracket outcomes</p>
+        </div>
+
+        <a href="{% url 'match_schedule' %}" class="btn btn-outline-cyan">
+            <i class="bi bi-calendar-event me-1"></i> Live Match Schedule
+        </a>
+    </div>
+
+    <!-- Match Search -->
+    <div class="p-3 mb-5 rounded-4 border border-secondary border-opacity-25" style="background: rgba(18, 26, 45, 0.6); backdrop-filter: blur(10px);">
+        <form method="GET" action="{% url 'match_list' %}" class="row g-2 align-items-center">
+            <div class="col-md-9 col-lg-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0 text-cyan">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control" placeholder="Search by team name, tournament title or round..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <button type="submit" class="btn btn-cyan w-100">
+                    Search Matches
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if matches %}
+        <div class="row g-4">
+            {% for match in matches %}
+                <div class="col-lg-6">
+                    <div class="fixture-card h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <span class="badge bg-dark border border-secondary text-cyan fs-6">
+                                    {{ match.tournament.title }}
+                                </span>
+                                <span class="badge bg-secondary">
+                                    {{ match.round_name }}
+                                </span>
+                            </div>
+
+                            <div class="p-3 rounded-3 mb-3" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--gv-border);">
+                                <div class="row align-items-center text-center g-2">
+                                    <div class="col-5">
+                                        <div class="fixture-team-name text-truncate" title="{{ match.team1_display }}">
+                                            {{ match.team1_display }}
+                                        </div>
+                                        <small class="text-secondary">Team 1</small>
+                                    </div>
+                                    <div class="col-2">
+                                        <span class="fixture-vs-badge">VS</span>
+                                    </div>
+                                    <div class="col-5">
+                                        <div class="fixture-team-name text-truncate" title="{{ match.team2_display }}">
+                                            {{ match.team2_display }}
+                                        </div>
+                                        <small class="text-secondary">Team 2</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 flex-wrap gap-2">
+                            <div class="small text-secondary">
+                                <i class="bi bi-calendar3 text-cyan me-1"></i> 
+                                {{ match.match_date|date:"D, d M Y" }} at {{ match.match_date|date:"h:i A" }}
+                            </div>
+
+                            <div>
+                                {% if match.winner %}
+                                    <span class="badge bg-success py-2 px-3">
+                                        <i class="bi bi-trophy-fill me-1"></i> Winner: {{ match.winner_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-dark border border-secondary py-2 px-3 text-cyan">
+                                        <i class="bi bi-clock me-1"></i> Pending
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 p-4 rounded-4 border border-secondary border-opacity-25" style="background: var(--gv-bg-card);">
+            <i class="bi bi-search fs-1 text-secondary mb-3 d-block"></i>
+            <h3 class="text-white">No Match Records Found</h3>
+            <p class="text-secondary max-w-md mx-auto mb-4">
+                No fixtures matched your search parameters.
+            </p>
+            <a href="{% url 'match_list' %}" class="btn btn-cyan">
+                View All Matches
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tournament.title }} - GameVerse Tournament Arena{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Breadcrumb & Back -->
+    <div class="mb-4 d-flex align-items-center gap-2">
+        <a href="{% url 'home' %}#featured" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Tournaments
+        </a>
+    </div>
+
+    <!-- Tournament Showcase Card -->
+    <div class="row g-4">
+        <!-- Main Details Column -->
+        <div class="col-lg-8">
+            <div class="gv-card overflow-hidden mb-4">
+                <div class="position-relative" style="height: 340px; background: #0f172a;">
+                    {% if tournament.image %}
+                        <img src="{{ tournament.image.url }}" alt="{{ tournament.title }}" 
+                             style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.85);">
+                    {% else %}
+                        <img src="{% static 'images/hero-bg.jpg' %}" alt="{{ tournament.title }}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    {% endif %}
+
+                    <span class="game-chip fs-6 py-2 px-3">{{ tournament.game }}</span>
+
+                    {% if not tournament.is_active %}
+                        <span class="status-chip closed fs-6 py-2 px-3">CLOSED</span>
+                    {% elif is_full %}
+                        <span class="status-chip full fs-6 py-2 px-3">SLOTS FULL</span>
+                    {% else %}
+                        <span class="status-chip open fs-6 py-2 px-3">REGISTRATION OPEN</span>
+                    {% endif %}
+                </div>
+
+                <div class="gv-card-body p-4 p-md-5">
+                    <h1 class="text-white mb-3">{{ tournament.title }}</h1>
+                    
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="badge bg-dark border border-secondary text-cyan p-2 px-3 fs-6">
+                            <i class="bi bi-controller me-1"></i> {{ tournament.game }}
+                        </span>
+                        <span class="badge bg-dark border border-secondary text-white p-2 px-3 fs-6">
+                            <i class="bi bi-people me-1"></i> Mode: {{ tournament.mode }}
+                        </span>
+                        <span class="badge bg-dark border border-secondary text-white p-2 px-3 fs-6">
+                            <i class="bi bi-calendar3 me-1"></i> {{ tournament.date|date:"F d, Y" }}
+                        </span>
+                    </div>
+
+                    <h4 class="text-white mb-3"><i class="bi bi-info-circle me-2 text-cyan"></i>Tournament Overview</h4>
+                    <div class="text-secondary leading-relaxed mb-4" style="font-size: 1.05rem;">
+                        {% if tournament.description %}
+                            <p style="white-space: pre-line;">{{ tournament.description }}</p>
+                        {% else %}
+                            <p>Get ready for intense competitive action in {{ tournament.game }}. Gather your team or compete solo according to the tournament mode to claim the victory and prize pool.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tournament Rules -->
+                    <h4 class="text-white mb-3"><i class="bi bi-shield-check me-2 text-cyan"></i>Fair Play & Rules</h4>
+                    <ul class="list-unstyled d-flex flex-column gap-2 text-secondary small">
+                        <li><i class="bi bi-check2-circle text-cyan me-2"></i> All players must be registered before the bracket closing deadline.</li>
+                        <li><i class="bi bi-check2-circle text-cyan me-2"></i> Emulators, hacks, third-party software, or scripts will result in immediate disqualification.</li>
+                        <li><i class="bi bi-check2-circle text-cyan me-2"></i> Match room credentials will be shared with registered users 15 minutes prior to match time.</li>
+                        <li><i class="bi bi-check2-circle text-cyan me-2"></i> Referees and admin decisions are final regarding all disputes.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Matches In This Tournament -->
+            {% if matches %}
+                <div class="p-4 rounded-4 border border-secondary border-opacity-25 mb-4" style="background: var(--gv-bg-card);">
+                    <h4 class="text-white mb-3"><i class="bi bi-calendar-event me-2 text-cyan"></i>Scheduled Tournament Matches</h4>
+                    <div class="d-flex flex-column gap-3">
+                        {% for match in matches %}
+                            <div class="fixture-card d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div>
+                                    <span class="badge bg-secondary mb-1">{{ match.round_name }}</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fixture-team-name fs-5">{{ match.team1_display }}</span>
+                                        <span class="fixture-vs-badge">VS</span>
+                                        <span class="fixture-team-name fs-5">{{ match.team2_display }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-cyan fw-bold">{{ match.match_date|date:"d M Y, h:i A" }}</div>
+                                    {% if match.winner %}
+                                        <span class="badge bg-success">Winner: {{ match.winner_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-dark border border-secondary">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Official Tournament Results -->
+            {% if results %}
+                <div class="p-4 rounded-4 border border-secondary border-opacity-25 mb-4" style="background: var(--gv-bg-card);">
+                    <h4 class="text-white mb-3"><i class="bi bi-award me-2 text-gold"></i>Official Standings</h4>
+                    <div class="gv-table-wrapper">
+                        <table class="table gv-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Placement</th>
+                                    <th>Player</th>
+                                    <th>Points Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for res in results %}
+                                    <tr>
+                                        <td>
+                                            {% if res.position == 1 %}
+                                                <span class="badge bg-warning text-dark fs-6">🥇 1st Place</span>
+                                            {% elif res.position == 2 %}
+                                                <span class="badge bg-light text-dark fs-6">🥈 2nd Place</span>
+                                            {% elif res.position == 3 %}
+                                                <span class="badge bg-secondary fs-6">🥉 3rd Place</span>
+                                            {% else %}
+                                                <span class="fw-bold">#{{ res.position }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong class="text-white">{{ res.player.username }}</strong>
+                                        </td>
+                                        <td class="text-gold fw-bold">
+                                            +{{ res.points }} PTS
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sticky Action & Info Column -->
+        <div class="col-lg-4">
+            <div class="p-4 rounded-4 border border-secondary border-opacity-25 sticky-top" 
+                 style="top: 96px; background: var(--gv-bg-card); backdrop-filter: blur(12px);">
+                
+                <div class="text-secondary small text-uppercase fw-bold letter-spacing-1 mb-1">Guaranteed Prize Pool</div>
+                <div class="text-gold font-display fs-1 fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-cash-stack"></i> {{ tournament.prize_pool }}
+                </div>
+
+                <hr class="gv-divider my-3">
+
+                <!-- Slot Fill Progress -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center small mb-1">
+                        <span class="text-secondary">Player Registration</span>
+                        <span class="fw-bold {% if is_full %}text-warning{% else %}text-cyan{% endif %}">
+                            {{ participants }} / {{ tournament.max_players }}
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.1);">
+                        <div class="progress-bar bg-cyan" role="progressbar" 
+                             style="width: {% widthratio participants tournament.max_players 100 %}%;"
+                             aria-valuenow="{{ participants }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ tournament.max_players }}">
+                        </div>
+                    </div>
+                    <small class="text-secondary mt-1 d-block">
+                        {% if is_full %}
+                            All registration slots have been filled.
+                        {% else %}
+                            Only {{ tournament.max_players|add:"-"|add:participants }} slot{{ tournament.max_players|add:"-"|add:participants|pluralize }} remaining!
+                        {% endif %}
+                    </small>
+                </div>
+
+                <!-- Registration State & Action -->
+                <div class="mb-4">
+                    {% if not tournament.is_active %}
+                        <div class="alert alert-danger mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-lock-fill fs-5"></i>
+                            <div>Registrations for this tournament are now closed.</div>
+                        </div>
+                        <button class="btn btn-secondary w-100 py-3" disabled>
+                            Tournament Inactive
+                        </button>
+                    {% elif joined %}
+                        <div class="alert alert-success mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill fs-5 text-success"></i>
+                            <div>You are confirmed and registered for this tournament!</div>
+                        </div>
+                        <a href="{% url 'my_tournaments' %}" class="btn btn-outline-cyan w-100 py-3">
+                            <i class="bi bi-controller me-1"></i> View in My Tournaments
+                        </a>
+                    {% elif is_full %}
+                        <div class="alert alert-warning mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+                            <div>This bracket is full. Check back for upcoming editions.</div>
+                        </div>
+                        <button class="btn btn-secondary w-100 py-3" disabled>
+                            Bracket Full
+                        </button>
+                    {% else %}
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'join_tournament' tournament.id %}" class="btn btn-cyan w-100 py-3 fs-5">
+                                <i class="bi bi-trophy-fill me-2"></i> Join Tournament Now
+                            </a>
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'tournament_detail' tournament.id %}" class="btn btn-cyan w-100 py-3 fs-5">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Login to Join
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- Quick Metadata -->
+                <div class="d-flex flex-column gap-2 small text-secondary pt-3 border-top border-secondary border-opacity-25">
+                    <div class="d-flex justify-content-between">
+                        <span>Format:</span>
+                        <strong class="text-white">{{ tournament.mode }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Match Date:</span>
+                        <strong class="text-white">{{ tournament.date|date:"d M Y" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Anti-Cheat:</span>
+                        <strong class="text-cyan"><i class="bi bi-shield-check"></i> Enabled</strong>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

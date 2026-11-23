@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirm Registration - {{ tournament.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="gv-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="stat-icon text-cyan mb-2">
+                        <i class="bi bi-shield-check fs-1"></i>
+                    </div>
+                    <span class="game-chip">{{ tournament.game }}</span>
+                    <h2 class="text-white mt-2 mb-1">{{ tournament.title }}</h2>
+                    <p class="text-secondary small">Confirm your entry into this tournament bracket</p>
+                </div>
+
+                <div class="p-3 rounded-3 mb-4" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--gv-border);">
+                    <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+                        <span class="text-secondary">Prize Pool:</span>
+                        <strong class="text-gold">{{ tournament.prize_pool }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+                        <span class="text-secondary">Date:</span>
+                        <strong class="text-white">{{ tournament.date|date:"D, d M Y" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+                        <span class="text-secondary">Format:</span>
+                        <strong class="text-white">{{ tournament.mode }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span class="text-secondary">Player Handle:</span>
+                        <strong class="text-cyan">{{ request.user.username }}</strong>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    <a href="{% url 'join_tournament' tournament.id %}" class="btn btn-cyan btn-lg w-100">
+                        <i class="bi bi-check2-circle me-1"></i> Confirm & Enter Tournament
+                    </a>
+                    <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-outline-secondary w-100">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

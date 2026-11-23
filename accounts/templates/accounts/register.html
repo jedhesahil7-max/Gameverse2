@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register - Join GameVerse Esports{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+
+            <div class="gv-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="user-avatar-sm mx-auto mb-3" style="width: 58px; height: 58px; font-size: 1.6rem; border-radius: 14px;">
+                        🎮
+                    </div>
+                    <h2 class="text-white mb-1">Create Gamer Identity</h2>
+                    <p class="text-secondary small">Join thousands of competitive gamers across India</p>
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.username.id_for_label }}">
+                            <i class="bi bi-person me-1 text-cyan"></i> Gamer Tag / Username <span class="text-danger">*</span>
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.email.id_for_label }}">
+                            <i class="bi bi-envelope me-1 text-cyan"></i> Email Address <span class="text-danger">*</span>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.password1.id_for_label }}">
+                            <i class="bi bi-shield-lock me-1 text-cyan"></i> Password <span class="text-danger">*</span>
+                        </label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" for="{{ form.password2.id_for_label }}">
+                            <i class="bi bi-shield-check me-1 text-cyan"></i> Confirm Password <span class="text-danger">*</span>
+                        </label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-cyan btn-lg w-100 py-3 mb-3">
+                        <i class="bi bi-rocket-takeoff-fill me-2"></i> Join The Arena
+                    </button>
+
+                    <div class="text-center pt-3 border-top border-secondary border-opacity-25">
+                        <span class="text-secondary small">Already have an account?</span>
+                        <a href="{% url 'login' %}" class="fw-bold text-cyan ms-1">Sign In</a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

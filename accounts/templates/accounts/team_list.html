@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Esports Squads & Clans - GameVerse{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="mb-1 text-white">👥 Esports Squads & Clans</h2>
+            <p class="text-secondary small mb-0">Join an established competitive roster or assemble your dream team</p>
+        </div>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'create_team' %}" class="btn btn-cyan">
+                <i class="bi bi-plus-circle me-1"></i> + Create New Squad
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}?next={% url 'create_team' %}" class="btn btn-outline-cyan">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Login to Create Squad
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Squad Search -->
+    <div class="p-3 mb-5 rounded-4 border border-secondary border-opacity-25" style="background: rgba(18, 26, 45, 0.6); backdrop-filter: blur(10px);">
+        <form method="GET" action="{% url 'team_list' %}" class="row g-2 align-items-center">
+            <div class="col-md-9 col-lg-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0 text-cyan">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control" placeholder="Search squads by clan name, title or game..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <button type="submit" class="btn btn-cyan w-100">
+                    Search Squads
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Squads Grid -->
+    {% if teams %}
+        <div class="row g-4">
+            {% for team in teams %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="gv-card">
+                        <div class="p-4 d-flex align-items-center gap-3 border-bottom border-secondary border-opacity-25" style="background: rgba(0,0,0,0.15);">
+                            {% if team.logo %}
+                                <img src="{{ team.logo.url }}" alt="{{ team.name }}" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1px solid var(--gv-border-cyan);">
+                            {% else %}
+                                <div class="user-avatar-sm" style="width: 64px; height: 64px; border-radius: 12px; font-size: 1.8rem;">
+                                    🛡️
+                                </div>
+                            {% endif %}
+
+                            <div class="overflow-hidden flex-grow-1">
+                                <h4 class="text-white mb-1 text-truncate">{{ team.name }}</h4>
+                                <span class="badge bg-dark border border-secondary text-cyan small">{{ team.game }}</span>
+                            </div>
+                        </div>
+
+                        <div class="gv-card-body d-flex flex-column">
+                            <div class="small text-secondary mb-3 d-flex flex-column gap-1">
+                                <div>
+                                    <i class="bi bi-crown-fill text-warning me-1"></i> Captain: 
+                                    <strong class="text-white">{{ team.captain.username }}</strong>
+                                </div>
+                                <div>
+                                    <i class="bi bi-people-fill text-cyan me-1"></i> Roster: 
+                                    <strong class="text-white">{{ team.member_count }} Active Members</strong>
+                                </div>
+                                <div>
+                                    <i class="bi bi-calendar3 text-secondary me-1"></i> Formed: {{ team.created_at|date:"d M Y" }}
+                                </div>
+                            </div>
+
+                            {% if team.description %}
+                                <p class="small text-secondary mb-3 flex-grow-1">
+                                    {{ team.description|truncatewords:14 }}
+                                </p>
+                            {% else %}
+                                <p class="small text-secondary mb-3 fst-italic flex-grow-1">
+                                    No clan manifesto provided.
+                                </p>
+                            {% endif %}
+
+                            <div class="d-flex gap-2 mt-auto pt-3 border-top border-secondary border-opacity-25">
+                                <a href="{% url 'team_detail' team.id %}" class="btn btn-outline-cyan flex-grow-1">
+                                    View Roster
+                                </a>
+
+                                {% if user.is_authenticated %}
+                                    {% if user in team.members.all %}
+                                        <button class="btn btn-secondary" disabled>
+                                            <i class="bi bi-check2"></i> In Squad
+                                        </button>
+                                    {% else %}
+                                        <a href="{% url 'join_team' team.id %}" class="btn btn-cyan">
+                                            Join Squad
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'login' %}?next={% url 'team_detail' team.id %}" class="btn btn-cyan">
+                                        Join
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 p-4 rounded-4 border border-secondary border-opacity-25" style="background: var(--gv-bg-card);">
+            <i class="bi bi-people fs-1 text-secondary mb-3 d-block"></i>
+            <h3 class="text-white">No Squads Found</h3>
+            <p class="text-secondary max-w-md mx-auto mb-4">
+                No teams matched your criteria. Be the pioneer and launch your clan now!
+            </p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'create_team' %}" class="btn btn-cyan">
+                    <i class="bi bi-plus-circle me-1"></i> Create Your Squad
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}?next={% url 'create_team' %}" class="btn btn-cyan">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Login to Create Squad
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

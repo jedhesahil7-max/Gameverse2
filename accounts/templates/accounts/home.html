@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}GameVerse - India's Premier Esports & Gaming Community{% endblock %}
+
+{% block content %}
+
+<!-- ================= HERO SECTION ================= -->
+<section class="gv-hero text-center">
+    <div class="container">
+        <div class="gv-hero-badge mx-auto">
+            <i class="bi bi-fire text-danger"></i> Season 2026 Live Now
+        </div>
+
+        <h1 class="gv-hero-title">
+            COMPETE. CONQUER. <br>
+            <span class="text-cyan">BECOME A LEGEND.</span>
+        </h1>
+
+        <p class="gv-hero-subtitle">
+            India's most exciting competitive esports hub. Join daily tournaments for BGMI, Valorant, CS2 & Apex, build your dream squad, and claim your share of massive prize pools.
+        </p>
+
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="#featured" class="btn btn-cyan btn-lg px-4 py-3">
+                <i class="bi bi-trophy-fill me-2"></i> Explore Tournaments
+            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'create_team' %}" class="btn btn-outline-cyan btn-lg px-4 py-3">
+                    <i class="bi bi-people-fill me-2"></i> Create Squad
+                </a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-purple btn-lg px-4 py-3">
+                    <i class="bi bi-person-plus-fill me-2"></i> Join The Arena
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="gv-hero-stats">
+            <div class="gv-hero-stat-item">
+                <div class="gv-hero-stat-num text-cyan">{{ tournaments.count }}+</div>
+                <div class="gv-hero-stat-label">Active Arenas</div>
+            </div>
+            <div class="gv-hero-stat-item">
+                <div class="gv-hero-stat-num text-purple">1,000+</div>
+                <div class="gv-hero-stat-label">Registered Gamers</div>
+            </div>
+            <div class="gv-hero-stat-item">
+                <div class="gv-hero-stat-num text-gold">₹5,00,000+</div>
+                <div class="gv-hero-stat-label">Monthly Prizes</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ================= POPULAR GAMES ================= -->
+<section class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="mb-1">🎮 Featured Titles</h2>
+            <p class="text-secondary small mb-0">Select your battleground to filter available tournaments</p>
+        </div>
+        {% if request.GET.game %}
+            <a href="{% url 'home' %}#featured" class="btn btn-sm btn-outline-light">
+                <i class="bi bi-x-circle me-1"></i> Clear Game Filter
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="row g-3 g-md-4">
+        <!-- BGMI -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'home' %}?game=BGMI#featured" class="game-category-card">
+                <img src="{% static 'images/bgmi.jpg' %}" alt="BGMI" loading="lazy">
+                <div class="game-category-overlay">
+                    <h6>BGMI</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- Valorant -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'home' %}?game=Valorant#featured" class="game-category-card">
+                <img src="{% static 'images/valorant.jpg' %}" alt="Valorant" loading="lazy">
+                <div class="game-category-overlay">
+                    <h6>Valorant</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- CS2 -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'home' %}?game=CS2#featured" class="game-category-card">
+                <img src="{% static 'images/cs2.jpg' %}" alt="CS2" loading="lazy">
+                <div class="game-category-overlay">
+                    <h6>CS2</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- PUBG -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'home' %}?game=PUBG#featured" class="game-category-card">
+                <img src="{% static 'images/pubg.jpg' %}" alt="PUBG" loading="lazy">
+                <div class="game-category-overlay">
+                    <h6>PUBG</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- Apex Legends -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'home' %}?game=Apex#featured" class="game-category-card">
+                <img src="{% static 'images/apex.jpg' %}" alt="Apex Legends" loading="lazy">
+                <div class="game-category-overlay">
+                    <h6>Apex</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- Free Fire -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'home' %}?game=Free%20Fire#featured" class="game-category-card">
+                <img src="{% static 'images/free-fire.jpg' %}" alt="Free Fire" loading="lazy">
+                <div class="game-category-overlay">
+                    <h6>Free Fire</h6>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<!-- ================= TOURNAMENTS SECTION ================= -->
+<section class="container py-5" id="featured">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="mb-1">
+                {% if game_filter %}
+                    🏆 {{ game_filter }} Tournaments
+                {% else %}
+                    🏆 Active Tournaments
+                {% endif %}
+            </h2>
+            <p class="text-secondary small mb-0">Browse and join open competitive brackets</p>
+        </div>
+
+        {% if game_filter or search_query %}
+            <a href="{% url 'home' %}#featured" class="btn btn-sm btn-outline-cyan">
+                <i class="bi bi-arrow-clockwise me-1"></i> Reset All Filters
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="p-3 mb-5 rounded-4 border border-secondary border-opacity-25" style="background: rgba(18, 26, 45, 0.6); backdrop-filter: blur(10px);">
+        <form method="GET" action="{% url 'home' %}#featured" class="row g-2 align-items-center">
+            <div class="col-lg-7 col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0 text-cyan">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control" placeholder="Search by tournament name, title or tags..." value="{{ search_query }}">
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-8">
+                <select name="game" class="form-select">
+                    <option value="">All Games</option>
+                    {% for code, label in game_choices %}
+                        <option value="{{ code }}" {% if game_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-2 col-4">
+                <button type="submit" class="btn btn-cyan w-100">
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tournament Cards Grid -->
+    {% if tournaments %}
+        <div class="row g-4">
+            {% for tournament in tournaments %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="gv-card">
+                        <div class="tournament-thumb-wrapper">
+                            {% if tournament.image %}
+                                <img src="{{ tournament.image.url }}" alt="{{ tournament.title }}" loading="lazy">
+                            {% else %}
+                                <img src="{% static 'images/hero-bg.jpg' %}" alt="{{ tournament.title }}" loading="lazy">
+                            {% endif %}
+                            <span class="game-chip">{{ tournament.game }}</span>
+                            {% if tournament.is_full %}
+                                <span class="status-chip full">FULL</span>
+                            {% elif tournament.is_active %}
+                                <span class="status-chip open">OPEN</span>
+                            {% else %}
+                                <span class="status-chip closed">CLOSED</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="gv-card-body d-flex flex-column">
+                            <h4 class="mb-2 text-white">{{ tournament.title }}</h4>
+
+                            <div class="mb-3">
+                                <span class="prize-pill">
+                                    <i class="bi bi-cash-stack"></i> {{ tournament.prize_pool }}
+                                </span>
+                            </div>
+
+                            <div class="small text-secondary mb-3 d-flex flex-column gap-1">
+                                <div><i class="bi bi-calendar3 text-cyan me-2"></i> {{ tournament.date|date:"D, d M Y" }}</div>
+                                <div><i class="bi bi-controller text-cyan me-2"></i> Mode: <strong class="text-white">{{ tournament.mode }}</strong></div>
+                            </div>
+
+                            {% if tournament.description %}
+                                <p class="small text-secondary mb-3 flex-grow-1">
+                                    {{ tournament.description|truncatewords:16 }}
+                                </p>
+                            {% endif %}
+
+                            <!-- Capacity progress -->
+                            <div class="mt-auto pt-2 border-top border-secondary border-opacity-25">
+                                <div class="d-flex justify-content-between align-items-center small mb-1">
+                                    <span class="text-secondary">Slots Filled</span>
+                                    <span class="fw-bold {% if tournament.is_full %}text-warning{% else %}text-cyan{% endif %}">
+                                        {{ tournament.registered_count }} / {{ tournament.max_players }}
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.1);">
+                                    <div class="progress-bar bg-cyan" role="progressbar" 
+                                         style="width: {% widthratio tournament.registered_count tournament.max_players 100 %}%;"
+                                         aria-valuenow="{{ tournament.registered_count }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="{{ tournament.max_players }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gv-card-footer">
+                            <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-outline-cyan w-100">
+                                View Details & Enter <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 p-4 rounded-4 border border-secondary border-opacity-25" style="background: rgba(18, 26, 45, 0.5);">
+            <div class="fs-1 mb-3 text-secondary">🎮</div>
+            <h3 class="text-white">No Tournaments Found</h3>
+            <p class="text-secondary max-w-md mx-auto mb-4">
+                We couldn't find any tournaments matching your query. Try selecting a different game or resetting the filter.
+            </p>
+            <a href="{% url 'home' %}#featured" class="btn btn-cyan">
+                View All Active Tournaments
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+
+<!-- ================= WHY GAMEVERSE ================= -->
+<section class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="mb-2">⭐ The Competitive Advantage</h2>
+        <p class="text-secondary">Engineered for esports athletes and aspiring champions</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="stat-box h-100" style="--stat-color: var(--gv-cyan);">
+                <div class="stat-icon text-cyan"><i class="bi bi-trophy"></i></div>
+                <h4 class="text-white mb-2">Automated Tournaments</h4>
+                <p class="small text-secondary mb-0">
+                    Seamless bracket management, instant registration verification, and transparent rules for every matchup.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-box h-100" style="--stat-color: var(--gv-purple);">
+                <div class="stat-icon text-purple"><i class="bi bi-people"></i></div>
+                <h4 class="text-white mb-2">Squad & Clan Hub</h4>
+                <p class="small text-secondary mb-0">
+                    Build your official clan, recruit top-tier teammates, designate team captains, and dominate squad ladders.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-box h-100" style="--stat-color: var(--gv-gold);">
+                <div class="stat-icon text-gold"><i class="bi bi-shield-check"></i></div>
+                <h4 class="text-white mb-2">Rankings & Leaderboards</h4>
+                <p class="small text-secondary mb-0">
+                    Earn rating points across every competition. Climb from Bronze to Diamond and showcase your achievements.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

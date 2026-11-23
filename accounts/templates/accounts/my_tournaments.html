@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Tournaments - GameVerse{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="mb-1 text-white">🏆 My Tournaments</h2>
+            <p class="text-secondary small mb-0">Track and manage all the competitions you have enrolled in</p>
+        </div>
+        <a href="{% url 'home' %}#featured" class="btn btn-outline-cyan">
+            <i class="bi bi-plus-circle me-1"></i> Browse More Tournaments
+        </a>
+    </div>
+
+    {% if registrations %}
+        <div class="row g-4">
+            {% for reg in registrations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="gv-card">
+                        <div class="tournament-thumb-wrapper">
+                            {% if reg.tournament.image %}
+                                <img src="{{ reg.tournament.image.url }}" alt="{{ reg.tournament.title }}">
+                            {% else %}
+                                <img src="{% static 'images/hero-bg.jpg' %}" alt="{{ reg.tournament.title }}">
+                            {% endif %}
+                            <span class="game-chip">{{ reg.tournament.game }}</span>
+                            {% if reg.tournament.is_active %}
+                                <span class="status-chip open">ACTIVE</span>
+                            {% else %}
+                                <span class="status-chip closed">COMPLETED</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="gv-card-body d-flex flex-column">
+                            <h4 class="text-white mb-2">{{ reg.tournament.title }}</h4>
+
+                            <div class="mb-3">
+                                <span class="prize-pill">
+                                    <i class="bi bi-cash-stack"></i> {{ reg.tournament.prize_pool }}
+                                </span>
+                            </div>
+
+                            <div class="small text-secondary mb-3 d-flex flex-column gap-1">
+                                <div><i class="bi bi-calendar-event text-cyan me-2"></i> Date: <strong class="text-white">{{ reg.tournament.date|date:"D, d M Y" }}</strong></div>
+                                <div><i class="bi bi-controller text-cyan me-2"></i> Mode: <strong class="text-white">{{ reg.tournament.mode }}</strong></div>
+                                <div><i class="bi bi-check-circle text-success me-2"></i> Enrolled: {{ reg.joined_at|date:"d M Y" }}</div>
+                            </div>
+
+                            <div class="mt-auto pt-3 border-top border-secondary border-opacity-25">
+                                <a href="{% url 'tournament_detail' reg.tournament.id %}" class="btn btn-cyan w-100">
+                                    Enter Arena & Matches <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 p-4 rounded-4 border border-secondary border-opacity-25" style="background: var(--gv-bg-card);">
+            <i class="bi bi-controller fs-1 text-secondary mb-3 d-block"></i>
+            <h3 class="text-white">You Haven't Joined Any Tournaments Yet</h3>
+            <p class="text-secondary max-w-md mx-auto mb-4">
+                Prove your skills on the national stage. Register for upcoming BGMI, Valorant, or CS2 brackets today.
+            </p>
+            <a href="{% url 'home' %}#featured" class="btn btn-cyan btn-lg">
+                <i class="bi bi-trophy-fill me-2"></i> Explore Open Tournaments
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

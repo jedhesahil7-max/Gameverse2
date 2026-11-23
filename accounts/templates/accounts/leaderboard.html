@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Esports Leaderboard - GameVerse Champions{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <div class="gv-hero-badge mx-auto mb-2">
+            <i class="bi bi-award-fill text-gold"></i> Hall of Fame
+        </div>
+        <h1 class="text-white mb-2">Esports Leaderboard</h1>
+        <p class="text-secondary max-w-md mx-auto">
+            Official competitive rankings based on tournament participations, bracket victories, and combat points.
+        </p>
+    </div>
+
+    <!-- Top 3 Podium Showcase (if at least 3 players exist) -->
+    {% if leaderboard|length >= 3 %}
+        <div class="row g-4 mb-5 align-items-end justify-content-center">
+            <!-- Rank 2: Silver -->
+            <div class="col-md-4 order-2 order-md-1">
+                <div class="podium-card rank-2">
+                    <div class="podium-medal">🥈</div>
+                    <span class="badge bg-secondary mb-2 fs-6">2nd Place</span>
+                    <h3 class="text-white mb-1">{{ leaderboard.1.username }}</h3>
+                    <div class="text-gold fw-bold fs-4 mb-2">{{ leaderboard.1.points }} PTS</div>
+                    <div class="small text-secondary">
+                        <i class="bi bi-trophy me-1"></i> {{ leaderboard.1.tournaments_joined }} Tournaments
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rank 1: Gold Champion -->
+            <div class="col-md-4 order-1 order-md-2">
+                <div class="podium-card rank-1 py-4">
+                    <div class="position-absolute top-0 start-50 translate-middle">
+                        <span class="badge bg-warning text-dark p-2 px-3 fw-bold fs-6 shadow">
+                            👑 REIGNING CHAMPION
+                        </span>
+                    </div>
+                    <div class="podium-medal mt-2">🥇</div>
+                    <span class="badge bg-warning text-dark mb-2 fs-5">1st Place</span>
+                    <h2 class="text-white mb-1">{{ leaderboard.0.username }}</h2>
+                    <div class="text-gold fw-bold fs-3 mb-2">{{ leaderboard.0.points }} PTS</div>
+                    <div class="small text-secondary">
+                        <i class="bi bi-trophy me-1"></i> {{ leaderboard.0.tournaments_joined }} Tournaments
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rank 3: Bronze -->
+            <div class="col-md-4 order-3 order-md-3">
+                <div class="podium-card rank-3">
+                    <div class="podium-medal">🥉</div>
+                    <span class="badge bg-danger mb-2 fs-6">3rd Place</span>
+                    <h3 class="text-white mb-1">{{ leaderboard.2.username }}</h3>
+                    <div class="text-gold fw-bold fs-4 mb-2">{{ leaderboard.2.points }} PTS</div>
+                    <div class="small text-secondary">
+                        <i class="bi bi-trophy me-1"></i> {{ leaderboard.2.tournaments_joined }} Tournaments
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Full Rankings Table -->
+    <div class="gv-table-wrapper">
+        <table class="table gv-table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Rank</th>
+                    <th>Player Handle</th>
+                    <th>Tournaments Entered</th>
+                    <th>Combat Points</th>
+                    <th>League Tier</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in leaderboard %}
+                    <tr {% if player.username == request.user.username %}style="background: rgba(0, 229, 255, 0.08);"{% endif %}>
+                        <td>
+                            {% if player.rank == 1 %}
+                                <span class="fs-4">🥇</span>
+                            {% elif player.rank == 2 %}
+                                <span class="fs-4">🥈</span>
+                            {% elif player.rank == 3 %}
+                                <span class="fs-4">🥉</span>
+                            {% else %}
+                                <span class="fw-bold fs-5 text-secondary">#{{ player.rank }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="user-avatar-sm" style="width: 38px; height: 38px;">
+                                    {{ player.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <strong class="text-white fs-6">{{ player.username }}</strong>
+                                    {% if player.username == request.user.username %}
+                                        <span class="badge bg-cyan text-dark ms-2 small">You</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-secondary"><i class="bi bi-controller text-cyan me-1"></i> {{ player.tournaments_joined }}</span>
+                        </td>
+                        <td>
+                            <strong class="text-gold fs-5">⭐ {{ player.points }}</strong>
+                        </td>
+                        <td>
+                            {% if player.points >= 1000 %}
+                                <span class="rank-badge rank-diamond"><i class="bi bi-gem"></i> Diamond</span>
+                            {% elif player.points >= 600 %}
+                                <span class="rank-badge rank-gold"><i class="bi bi-award-fill"></i> Gold</span>
+                            {% elif player.points >= 300 %}
+                                <span class="rank-badge rank-silver"><i class="bi bi-shield-fill"></i> Silver</span>
+                            {% else %}
+                                <span class="rank-badge rank-bronze"><i class="bi bi-shield"></i> Bronze</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-secondary">
+                            No leaderboard data available yet. Join tournaments to earn combat points!
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

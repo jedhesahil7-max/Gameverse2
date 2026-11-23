@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - GameVerse Esports{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="gv-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="user-avatar-sm mx-auto mb-3" style="width: 58px; height: 58px; font-size: 1.6rem; border-radius: 14px;">
+                        🔐
+                    </div>
+                    <h2 class="text-white mb-1">Gamer Sign In</h2>
+                    <p class="text-secondary small">Access your tournament dashboard and squad stats</p>
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    {% if request.GET.next %}
+                        <input type="hidden" name="next" value="{{ request.GET.next }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.username.id_for_label }}">
+                            <i class="bi bi-person me-1 text-cyan"></i> Username
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label" for="{{ form.password.id_for_label }}">
+                                <i class="bi bi-shield-lock me-1 text-cyan"></i> Password
+                            </label>
+                        </div>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-cyan btn-lg w-100 py-3 mb-3">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Enter Arena
+                    </button>
+
+                    <div class="text-center pt-3 border-top border-secondary border-opacity-25">
+                        <span class="text-secondary small">Don't have a gamer profile yet?</span>
+                        <a href="{% url 'register' %}" class="fw-bold text-cyan ms-1">Create Account</a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

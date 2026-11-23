@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ request.user.username }}'s Gamer Passport - GameVerse{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Gamer Passport Header -->
+    <div class="p-4 p-md-5 mb-5 rounded-4 border border-secondary border-opacity-25" 
+         style="background: linear-gradient(135deg, rgba(18, 26, 45, 0.95) 0%, rgba(11, 15, 25, 0.95) 100%);">
+        <div class="row align-items-center g-4">
+            <div class="col-md-8 d-flex align-items-center gap-4 flex-wrap">
+                <div class="user-avatar-sm" style="width: 80px; height: 80px; font-size: 2.2rem; border-radius: 20px;">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+                <div>
+                    <div class="small text-cyan text-uppercase fw-bold letter-spacing-1">Verified Esports Athlete</div>
+                    <h1 class="text-white mb-1">{{ request.user.username }}</h1>
+                    <div class="text-secondary small">
+                        <i class="bi bi-envelope me-1"></i> {{ request.user.email|default:"No email set" }} • 
+                        <i class="bi bi-calendar-check me-1"></i> Joined {{ request.user.date_joined|date:"F Y" }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 text-md-end">
+                <div class="d-inline-flex flex-column align-items-md-end gap-2">
+                    <span class="text-secondary small">Competitive Tier</span>
+                    <span class="rank-badge rank-{{ rank|lower }} fs-5 py-2 px-4">
+                        <i class="bi bi-shield-fill"></i> {{ rank }} League
+                    </span>
+                    <span class="small text-gold fw-bold">⭐ {{ points }} Combat Points</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Stats Counters -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="stat-box" style="--stat-color: var(--gv-cyan);">
+                <div class="stat-icon text-cyan"><i class="bi bi-trophy-fill"></i></div>
+                <div class="stat-value">{{ total_joined }}</div>
+                <div class="stat-title">Tournaments Entered</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="stat-box" style="--stat-color: var(--gv-gold);">
+                <div class="stat-icon text-gold"><i class="bi bi-lightning-charge-fill"></i></div>
+                <div class="stat-value">{{ points }}</div>
+                <div class="stat-title">Combat Points</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="stat-box" style="--stat-color: var(--gv-purple);">
+                <div class="stat-icon text-purple"><i class="bi bi-award-fill"></i></div>
+                <div class="stat-value">{{ rank }}</div>
+                <div class="stat-title">Current Rank</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="stat-box" style="--stat-color: var(--gv-green);">
+                <div class="stat-icon text-success"><i class="bi bi-people-fill"></i></div>
+                <div class="stat-value">{{ teams_joined }}</div>
+                <div class="stat-title">Active Squads</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievements & Badges Showcase -->
+    <div class="mb-5">
+        <h3 class="text-white mb-3"><i class="bi bi-patch-check-fill me-2 text-cyan"></i>Unlocked Achievements</h3>
+        {% if achievements %}
+            <div class="row g-3">
+                {% for badge in achievements %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="p-3 rounded-4 border border-secondary border-opacity-25 d-flex align-items-center gap-3" style="background: var(--gv-bg-card);">
+                            <div class="fs-1">{{ badge.icon }}</div>
+                            <div>
+                                <h5 class="text-white mb-0">{{ badge.title }}</h5>
+                                <small class="text-secondary">{{ badge.desc }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-secondary small">Enter tournaments and form squads to unlock your first combat badge!</p>
+        {% endif %}
+    </div>
+
+    <!-- Squad Memberships -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-white mb-0"><i class="bi bi-shield-shaded me-2 text-cyan"></i>My Squads</h3>
+            <a href="{% url 'create_team' %}" class="btn btn-sm btn-outline-cyan">+ Create Squad</a>
+        </div>
+
+        {% if teams %}
+            <div class="row g-3">
+                {% for team in teams %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="gv-card p-3">
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                {% if team.logo %}
+                                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;">
+                                {% else %}
+                                    <div class="user-avatar-sm" style="width: 48px; height: 48px; font-size: 1.3rem; border-radius: 10px;">
+                                        🛡️
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <h5 class="text-white mb-0 text-truncate">{{ team.name }}</h5>
+                                    <span class="badge bg-dark border border-secondary text-cyan small">{{ team.game }}</span>
+                                </div>
+                                {% if team.captain == request.user %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-crown-fill"></i> Captain</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Member</span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-2 small">
+                                <span class="text-secondary">{{ team.member_count }} Members</span>
+                                <a href="{% url 'team_detail' team.id %}" class="text-cyan hover-cyan">Squad Roster →</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="p-4 rounded-4 border border-secondary border-opacity-25 text-center" style="background: var(--gv-bg-card);">
+                <p class="text-secondary mb-2">You have not joined any squads yet.</p>
+                <a href="{% url 'team_list' %}" class="btn btn-sm btn-outline-cyan">Explore Squads</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tournament History -->
+    <div>
+        <h3 class="text-white mb-3"><i class="bi bi-trophy me-2 text-cyan"></i>Tournament History</h3>
+        {% if registrations %}
+            <div class="gv-table-wrapper">
+                <table class="table gv-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tournament Title</th>
+                            <th>Game</th>
+                            <th>Format</th>
+                            <th>Registration Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in registrations %}
+                            <tr>
+                                <td>
+                                    <strong class="text-white">{{ reg.tournament.title }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark border border-secondary text-cyan">{{ reg.tournament.game }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-secondary">{{ reg.tournament.mode }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-secondary">{{ reg.joined_at|date:"d M Y" }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'tournament_detail' reg.tournament.id %}" class="btn btn-sm btn-outline-cyan">
+                                        View Arena
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-4 rounded-4 border border-secondary border-opacity-25 text-center" style="background: var(--gv-bg-card);">
+                <p class="text-secondary mb-2">No tournament registrations on record.</p>
+                <a href="{% url 'home' %}#featured" class="btn btn-sm btn-cyan">Join Your First Tournament</a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
