@@ -561,6 +561,12 @@ a:hover {
     letter-spacing: 0.5px;
 }
 
+.rank-unranked {
+    background: rgba(100, 116, 139, 0.18);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: #94a3b8;
+}
+
 .rank-bronze {
     background: rgba(180, 83, 9, 0.2);
     border: 1px solid rgba(180, 83, 9, 0.5);
@@ -585,6 +591,13 @@ a:hover {
     border: 1px solid var(--gv-cyan);
     color: #ffffff;
     box-shadow: 0 0 16px var(--gv-cyan-glow);
+}
+
+.rank-champion {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(250, 204, 21, 0.22));
+    border: 1px solid #c084fc;
+    color: #f5d0fe;
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.4);
 }
 
 /* ================= TABLES ================= */

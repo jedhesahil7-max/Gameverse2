@@ -111,14 +111,18 @@
                             <strong class="text-gold fs-5">⭐ {{ player.points }}</strong>
                         </td>
                         <td>
-                            {% if player.points >= 1000 %}
+                            {% if player.rank_tier == "Champion" %}
+                                <span class="rank-badge rank-champion"><i class="bi bi-crown-fill"></i> Champion</span>
+                            {% elif player.rank_tier == "Diamond" %}
                                 <span class="rank-badge rank-diamond"><i class="bi bi-gem"></i> Diamond</span>
-                            {% elif player.points >= 600 %}
+                            {% elif player.rank_tier == "Gold" %}
                                 <span class="rank-badge rank-gold"><i class="bi bi-award-fill"></i> Gold</span>
-                            {% elif player.points >= 300 %}
+                            {% elif player.rank_tier == "Silver" %}
                                 <span class="rank-badge rank-silver"><i class="bi bi-shield-fill"></i> Silver</span>
-                            {% else %}
+                            {% elif player.rank_tier == "Bronze" %}
                                 <span class="rank-badge rank-bronze"><i class="bi bi-shield"></i> Bronze</span>
+                            {% else %}
+                                <span class="rank-badge rank-unranked"><i class="bi bi-dash-circle"></i> Unranked</span>
                             {% endif %}
                         </td>
                     </tr>

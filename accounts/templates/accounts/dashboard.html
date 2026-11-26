@@ -25,11 +25,35 @@
                 </p>
             </div>
             <div class="col-md-4 text-md-end">
-                <div class="d-inline-flex flex-column align-items-md-end gap-2">
+                <div class="d-inline-flex flex-column align-items-md-end gap-2 w-100">
                     <span class="text-secondary small">Competitive Status</span>
                     <span class="rank-badge rank-{{ rank|lower }}">
-                        <i class="bi bi-shield-fill"></i> {{ rank }} League
+                        {% if rank == "Unranked" %}
+                            <i class="bi bi-dash-circle"></i> Unranked
+                        {% elif rank == "Champion" %}
+                            <i class="bi bi-crown-fill"></i> Champion Tier
+                        {% else %}
+                            <i class="bi bi-shield-fill"></i> {{ rank }} League
+                        {% endif %}
                     </span>
+                    <div class="w-100 mt-1" style="max-width: 260px;">
+                        <div class="d-flex justify-content-between small text-secondary mb-1">
+                            <span>{{ points }} PTS</span>
+                            {% if next_tier %}
+                                <span>Goal: {{ next_tier }} PTS</span>
+                            {% else %}
+                                <span class="text-gold">Max Tier Reached!</span>
+                            {% endif %}
+                        </div>
+                        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.08);">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ rank_progress }}%;" aria-valuenow="{{ rank_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        {% if rank == "Unranked" %}
+                            <div class="small text-secondary mt-1" style="font-size: 0.75rem;">
+                                Place in a tournament to earn points &amp; unlock Bronze.
+                            </div>
+                        {% endif %}
+                    </div>
                     <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-cyan mt-1">
                         <i class="bi bi-person-badge me-1"></i> View Full Passport
                     </a>
@@ -60,7 +84,7 @@
             <div class="stat-box" style="--stat-color: var(--gv-purple);">
                 <div class="stat-icon text-purple"><i class="bi bi-award-fill"></i></div>
                 <div class="stat-value">{{ rank }}</div>
-                <div class="stat-title">Current Rank Tier</div>
+                <div class="stat-title">Rank ({{ wins }} Win{{ wins|pluralize }})</div>
             </div>
         </div>
 
@@ -148,6 +172,24 @@
                     <h5 class="text-white">No Tournaments Joined Yet</h5>
                     <p class="text-secondary small mb-3">Jump into the action by enrolling in open competitive brackets.</p>
                     <a href="{% url 'home' %}#featured" class="btn btn-sm btn-cyan">Browse Tournaments</a>
+                </div>
+            {% endif %}
+
+            <!-- Recent Official Results -->
+            {% if recent_results %}
+                <div class="mt-5">
+                    <h4 class="mb-3 text-white"><i class="bi bi-award me-2 text-gold"></i>Recent Tournament Results</h4>
+                    <div class="d-flex flex-column gap-2">
+                        {% for res in recent_results %}
+                            <div class="p-3 rounded-4 border border-secondary border-opacity-25 d-flex justify-content-between align-items-center" style="background: var(--gv-bg-card);">
+                                <div>
+                                    <div class="text-white fw-bold">{{ res.tournament.title }}</div>
+                                    <div class="small text-secondary">{{ res.tournament.game }} • Finished #{{ res.position }}</div>
+                                </div>
+                                <span class="badge bg-warning text-dark fw-bold fs-6">+{{ res.points }} PTS</span>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             {% endif %}
 

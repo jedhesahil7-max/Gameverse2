@@ -142,8 +142,17 @@ class GameVerseBackendTests(TestCase):
         response = self.client.get(reverse("leaderboard"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "gamer1")
-        # 100 participation pts + 250 result pts = 350 pts
-        self.assertContains(response, "350")
+        # Points come strictly from TournamentResult (250 pts), not from joining
+        self.assertContains(response, "250")
+
+    def test_dashboard_unranked_on_join_only(self):
+        self.client.login(username="gamer1", password="Password123!")
+        Registration.objects.create(user=self.user, tournament=self.tournament)
+        response = self.client.get(reverse("dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["points"], 0)
+        self.assertEqual(response.context["rank"], "Unranked")
+        self.assertContains(response, "Unranked")
 
     def test_match_display_with_team_id(self):
         match = Match.objects.create(

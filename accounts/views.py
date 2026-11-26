@@ -5,12 +5,60 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import Tournament, Registration, Team, Match, TournamentResult
 from .forms import UserRegisterForm, UserLoginForm, TeamForm
 from .ai_generator import generate_esports_crest
+
+
+# =====================================================
+# RANKING HELPERS
+# =====================================================
+
+def _get_rank_info(points):
+    """Return (rank_name, rank_color, next_tier_points, progress_pct) for a points value."""
+    TIERS = [
+        (0,    "Unranked",  "secondary", 1,    0),
+        (1,    "Bronze",    "bronze",    500,  1),
+        (500,  "Silver",    "silver",    1000, 500),
+        (1000, "Gold",      "gold",      2500, 1000),
+        (2500, "Diamond",   "cyan",      5000, 2500),
+        (5000, "Champion",  "purple",    None, 5000),
+    ]
+    for min_pts, name, color, next_pts, tier_start in reversed(TIERS):
+        if points >= min_pts:
+            if next_pts is None:
+                progress = 100
+            else:
+                span = next_pts - tier_start
+                progress = int(min(((points - tier_start) / span) * 100, 100))
+            return {
+                "rank": name,
+                "rank_color": color,
+                "next_tier": next_pts,
+                "rank_progress": progress,
+            }
+    return {"rank": "Unranked", "rank_color": "secondary", "next_tier": 1, "rank_progress": 0}
+
+
+def _calc_user_stats(user):
+    """Return dict of stats for a given user (points from results only, wins, placements)."""
+    results = TournamentResult.objects.filter(player=user)
+    points = results.aggregate(total=Sum("points"))["total"] or 0
+    wins   = results.filter(position=1).count()
+    top3   = results.filter(position__lte=3).count()
+    played = results.count()
+    tournaments_joined = Registration.objects.filter(user=user).count()
+    return {
+        "points": points,
+        "wins": wins,
+        "top3": top3,
+        "matches_played": played,
+        "total_joined": tournaments_joined,
+        **_get_rank_info(points),
+    }
 
 
 # =====================================================
@@ -128,23 +176,7 @@ def logout_user(request):
 
 @login_required
 def dashboard(request):
-    registrations_count = Registration.objects.filter(user=request.user).count()
-
-    # Calculate points from participation and official results
-    result_points = (
-        TournamentResult.objects.filter(player=request.user)
-        .aggregate(total=Sum("points"))["total"] or 0
-    )
-    points = (registrations_count * 100) + result_points
-
-    if points < 300:
-        rank = "Bronze"
-    elif points < 600:
-        rank = "Silver"
-    elif points < 1000:
-        rank = "Gold"
-    else:
-        rank = "Diamond"
+    stats = _calc_user_stats(request.user)
 
     user_teams = Team.objects.filter(members=request.user)
 
@@ -154,7 +186,6 @@ def dashboard(request):
         .order_by("-joined_at")[:4]
     )
 
-    # User's tournament IDs for finding upcoming matches
     user_tournament_ids = Registration.objects.filter(
         user=request.user
     ).values_list("tournament_id", flat=True)
@@ -165,16 +196,22 @@ def dashboard(request):
         .order_by("match_date")[:3]
     )
 
+    # Recent placement results
+    recent_results = (
+        TournamentResult.objects.filter(player=request.user)
+        .select_related("tournament")
+        .order_by("-created_at")[:5]
+    )
+
     return render(
         request,
         "accounts/dashboard.html",
         {
-            "total_joined": registrations_count,
-            "points": points,
-            "rank": rank,
+            **stats,
             "teams": user_teams,
             "recent_tournaments": recent_tournaments,
             "upcoming_matches": upcoming_matches,
+            "recent_results": recent_results,
         }
     )
 
@@ -190,68 +227,35 @@ def profile(request):
         .select_related("tournament")
         .order_by("-joined_at")
     )
-    total_joined = registrations.count()
-
+    stats = _calc_user_stats(request.user)
     teams = Team.objects.filter(members=request.user).prefetch_related("members")
-    teams_joined = teams.count()
-
-    result_points = (
-        TournamentResult.objects.filter(player=request.user)
-        .aggregate(total=Sum("points"))["total"] or 0
-    )
-    points = (total_joined * 100) + result_points
-
-    if points < 300:
-        rank = "Bronze"
-    elif points < 600:
-        rank = "Silver"
-    elif points < 1000:
-        rank = "Gold"
-    else:
-        rank = "Diamond"
 
     achievements = []
-    if total_joined >= 1:
-        achievements.append({
-            "icon": "🏆",
-            "title": "First Tournament",
-            "desc": "Entered your first competitive tournament"
-        })
-    if total_joined >= 5:
-        achievements.append({
-            "icon": "🔥",
-            "title": "Tournament Veteran",
-            "desc": "Joined 5 or more tournaments"
-        })
-    if teams_joined >= 1:
-        achievements.append({
-            "icon": "👥",
-            "title": "Squad Leader",
-            "desc": "Joined or founded a competitive team"
-        })
-    if points >= 500:
-        achievements.append({
-            "icon": "⚡",
-            "title": "High Scorer",
-            "desc": "Accumulated over 500 gaming points"
-        })
-    if points >= 1000:
-        achievements.append({
-            "icon": "💎",
-            "title": "Diamond Legend",
-            "desc": "Reached the elite Diamond league"
-        })
+    if stats["total_joined"] >= 1:
+        achievements.append({"icon": "🏆", "title": "First Tournament", "desc": "Entered your first competitive tournament"})
+    if stats["total_joined"] >= 5:
+        achievements.append({"icon": "🔥", "title": "Tournament Veteran", "desc": "Joined 5 or more tournaments"})
+    if teams.count() >= 1:
+        achievements.append({"icon": "👥", "title": "Squad Leader", "desc": "Joined or founded a competitive team"})
+    if stats["wins"] >= 1:
+        achievements.append({"icon": "🥇", "title": "Winner", "desc": "Finished 1st place in a tournament"})
+    if stats["wins"] >= 3:
+        achievements.append({"icon": "👑", "title": "Triple Champion", "desc": "Won 3 or more tournaments"})
+    if stats["points"] >= 1000:
+        achievements.append({"icon": "💎", "title": "Gold Legend", "desc": "Reached Gold league with 1000+ points"})
+    if stats["points"] >= 2500:
+        achievements.append({"icon": "⚡", "title": "Diamond Elite", "desc": "Reached Diamond league with 2500+ points"})
+    if stats["points"] >= 5000:
+        achievements.append({"icon": "🏅", "title": "Champion", "desc": "Reached the pinnacle — Champion tier!"})
 
     return render(
         request,
         "accounts/profile.html",
         {
-            "total_joined": total_joined,
-            "tournaments_joined": total_joined,
-            "teams_joined": teams_joined,
+            **stats,
+            "tournaments_joined": stats["total_joined"],
+            "teams_joined": teams.count(),
             "teams": teams,
-            "points": points,
-            "rank": rank,
             "achievements": achievements,
             "registrations": registrations,
         }
@@ -515,21 +519,21 @@ def leaderboard(request):
     leaderboard_data = []
 
     for user in users:
-        reg_count = Registration.objects.filter(user=user).count()
-        res_pts = (
-            TournamentResult.objects.filter(player=user)
-            .aggregate(total=Sum("points"))["total"] or 0
-        )
-        total_pts = (reg_count * 100) + res_pts
-
+        stats = _calc_user_stats(user)
         leaderboard_data.append({
             "username": user.username,
-            "tournaments_joined": reg_count,
-            "points": total_pts,
+            "tournaments_joined": stats["total_joined"],
+            "points": stats["points"],
+            "wins": stats["wins"],
+            "matches_played": stats["matches_played"],
+            "rank_tier": stats["rank"],
         })
 
-    # Sort descending by points, then by tournaments joined
-    leaderboard_data.sort(key=lambda x: (x["points"], x["tournaments_joined"]), reverse=True)
+    # Sort descending by points, then wins, then tournaments joined
+    leaderboard_data.sort(
+        key=lambda x: (x["points"], x["wins"], x["tournaments_joined"]),
+        reverse=True,
+    )
 
     for index, player in enumerate(leaderboard_data, start=1):
         player["rank"] = index
